@@ -80,16 +80,16 @@ jobs:
             echo "❎ 未启用应用商店"
           fi
 
-      - name: Prepare Docker config
-        run: |
+           - name: Prepare Docker config
+             run: |
           if [ "${{ github.event.inputs.include_docker }}" == "yes" ]; then
             mkdir -p files/etc/docker
             cat > files/etc/docker/daemon.json <<'EOF'
-{
-  "bip": "172.31.0.1/16",
-  "iptables": false,
-  "ip-forward": true
-}
+            {
+              "bip": "172.31.0.1/16",
+              "iptables": false,
+              "ip-forward": true
+            }
 EOF
             echo "✅ 已添加安全的 Docker 配置"
           else
