@@ -17,7 +17,7 @@ on:
       rootfs_partsize:
         description: '固件大小 (MB)'
         required: true
-        default: ’2200’
+        default: '2200'
 
       enable_store:
         description: "是否集成应用商店"
@@ -64,8 +64,8 @@ jobs:
 
       - name: Validate PPPoE Inputs
         run: |
-          if [[ "${{ inputs.enable_pppoe }}" == "yes" ]]; then
-            if [[ -z "${{ inputs.pppoe_account }}" || -z "${{ inputs.pppoe_password }}" ]]; then
+          if [[ "${{ github.event.inputs.enable_pppoe }}" == "yes" ]]; then
+            if [[ -z "${{ github.event.inputs.pppoe_account }}" || -z "${{ github.event.inputs.pppoe_password }}" ]]; then
               echo "❌ PPPoE启用时必须提供账号和密码"
               exit 1
             fi
@@ -84,7 +84,7 @@ jobs:
         run: |
           if [ "${{ github.event.inputs.include_docker }}" == "yes" ]; then
             mkdir -p files/etc/docker
-            cat > files/etc/docker/daemon.json <<EOF
+            cat > files/etc/docker/daemon.json <<'EOF'
 {
   "bip": "172.31.0.1/16",
   "iptables": false,
@@ -106,11 +106,11 @@ EOF
 # 1. 禁用 DHCP 服务
 uci set dhcp.lan.ignore='1'
 
-# 2. 设置 LAN 口固定 IP (示例：192.168.2.2)
-uci set network.lan.ipaddr='192.168.2.2’
+# 2. 设置 LAN 口固定 IP
+uci set network.lan.ipaddr='192.168.2.2'
 uci set network.lan.netmask='255.255.255.0'
-uci set network.lan.gateway='192.168.2.1’
-uci set network.lan.dns='192.168.2.1’
+uci set network.lan.gateway='192.168.2.1'
+uci set network.lan.dns='192.168.2.1'
 
 # 3. 防火墙默认允许所有流量
 uci set firewall.@zone[0].input='ACCEPT'
@@ -120,7 +120,7 @@ uci set firewall.@zone[0].output='ACCEPT'
 # 4. 禁止 WAN 接口获取 IP
 uci set network.wan.proto='none'
 
-# 5. 关闭不必要的服务，降低系统负载
+# 5. 关闭不必要的服务
 for svc in firewall dnsmasq odhcpd; do
   /etc/init.d/$svc disable
 done
@@ -150,9 +150,9 @@ EOF
               -e PROFILE=$profile \
               -e INCLUDE_DOCKER=$include_docker \
               -e ROOTFS_PARTSIZE=$rootfs_partsize \
-              -e ENABLE_PPPOE=${{ inputs.enable_pppoe }} \
-              -e PPPOE_ACCOUNT=${{ inputs.pppoe_account }} \
-              -e PPPOE_PASSWORD=${{ inputs.pppoe_password }} \
+              -e ENABLE_PPPOE=${{ github.event.inputs.enable_pppoe }} \
+              -e PPPOE_ACCOUNT=${{ github.event.inputs.pppoe_account }} \
+              -e PPPOE_PASSWORD=${{ github.event.inputs.pppoe_password }} \
               immortalwrt/imagebuilder:rockchip-armv8-openwrt-24.10.2 /bin/bash /home/build/immortalwrt/build.sh
           done
 
